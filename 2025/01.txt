@@ -1,1 +1,11 @@
-Empty
+# Managing RHEL Security with Red Hat Errata
+
+dnf updateinfo --security
+dnf updateinfo list updates security
+dnf updateinfo info RHSA-2023:4412
+dnf updateinfo list updates security --cve CVE-2023-38408
+dnf update --cve CVE-2023-38408
+
+
+# Reviewing Recommended Security Practices
+
