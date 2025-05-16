@@ -8,4 +8,16 @@ dnf update --cve CVE-2023-38408
 
 
 # Reviewing Recommended Security Practices
+sudo update-crypto-policies --set legacy
+ssh-keygen
+ssh-copyid host@server
+cat /etc/ssh/sshd_config | grep -i PasswordAuthentication
+systemctl reload sshd
 
+# Lab
+dnf updateinfo --security
+dnf updateinfo list updates security
+dnf updateinfo list updates security | grep Moderate
+dnf updateinfo info RHSA-2023:4354
+dnf update --advisory RHSA-2023:4354
+dnf updateinfo --security
