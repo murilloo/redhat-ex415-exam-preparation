@@ -1,0 +1,54 @@
+# Configuring Ansible for Security Automation
+
+dnf install ansible-navigator
+ansible-navigator images
+
+cat <<EOF >> ansible.cfg
+[defaults]
+inventory       = ./inventory
+remote_user     = ansible-testuser
+
+[privilege_escalation]
+become          = true
+become_method   = sudo
+become_user     = root
+become_ask_pass = false
+
+EOF
+
+cat <<EOF >> inventory
+[Boston]
+servera
+serverb
+
+[Raleigh]
+workstation
+
+[cities:children]
+Boston
+Raleigh
+
+EOF
+
+ansible-navigator inventory -m stdout --graph
+
+cat <<EOF >> sshd_config.yml
+---
+- name: Play to disable SSH password-based authentication
+  hosts: Boston
+  tasks:
+    - name: Task to disable SSH password-based authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: 'PasswordAuthentication yes'
+        backrefs: yes
+        line: 'PasswordAuthentication no'
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+EOF
+
+ansible-navigator run -m stdout sshd_config.yml --syntax-check
+ansible-navigator run -m stdout sshd_config.yml
+
