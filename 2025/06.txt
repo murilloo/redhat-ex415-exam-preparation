@@ -1,0 +1,34 @@
+# Recording System Events with Audit
+
+systemctl is-active auditd
+systemctl is-enabled auditd
+
+tail /var/log/audit/audit.log
+cat /etc/audit/auditd.conf
+service auditd restart
+
+dnf install audispd-plugins
+cat /etc/audit/plugins.d/au-remote.conf
+  active = yes
+cat /etc/audit/audisp-remote.conf
+  remote_server = serverb
+  port = 60
+service auditd restart
+firewall-cmd --zone=public --add-port=60/tcp --permanent
+firewall-cmd --reload
+service auditd restart
+
+
+# Inspecting Audit Logs
+
+/var/log/audit/audit.log
+ausearch -i -if ./raw_audit.log
+ausearch -p 1440 --raw
+ausearch -a 233
+ausearch -m LOGIN
+ausearch -f /bin/ls
+ausearch -i -a 28708
+autrace /bin/date
+ausearch --raw -p 26472 | aureport --file -i
+
+
