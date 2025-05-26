@@ -42,7 +42,79 @@ ausearch -f /bin/ls
 ausearch -i -a 28708
   # The following ausearch command returns an interpreted version of event 28708
 
+ausearch -i -a 233
+  # Retrieve more information about the previous event by using the ausearch command. Use the -i option to render the results in a more human-readable format.
+
+aureport --executable --summary
+  # --summary command to generate an executable summary report of command executions.
+
+ausearch -m LOGIN --format csv > results.csv
+  # Search for all Audit events of the LOGIN type, and export them in CSV format. Store the results in a results.csv file for future use.
+
+autrace /bin/ls /tmp
+  # autrace /bin/ls /tmp command to trace the execution of the /bin/ls /tmp command.
+
+ausearch -i -p 1440
+  # -i -p 1440 command to review the records. 
+
+ausearch -p 1440 --raw
+  # ausearch -p 1440 --raw command to review the records in raw format. Use the same value from the previous command.
+
+ausearch -p 1440 --raw | aureport -i --file
+  # -p 1440 --raw | aureport -i --file command to create a report file. Use the same value from the previous command.
+
 autrace /bin/date
 ausearch --raw -p 26472 | aureport --file -i
 
+ aureport --login
+  # Generate a report of all login events by using the aureport command. 
 
+
+# Writing Custom Audit Rules
+
+# Setting File System Watch Rules
+
+auditctl -w file -p permissions -k key
+  # The -p option takes a list of accesses to monitor by permission type.
+  # r for read access
+  # w for write access
+  # x for execute access
+  # a for changes to attributes
+  
+  # The -k option takes a key to set on the Audit record to make it easier to find with a specific ausearch query.
+
+auditctl -w /etc/passwd -p wa -k user-edit
+auditctl -w /etc/sysconfig/ -p rwa -k sysconfig-access
+auditctl -w /bin/ -p x
+
+# Setting System Call Rules
+
+auditctl -a exit,always -F arch=b32 -F auid>=1000 -S rename -S renameat -F subj_type!=mysqld_t -k rename
+auditctl -a exit,always -F dir=/home/ -F uid=0 -C auid!=obj_uid
+auditctl -a exclude,never -F auid=example -F msgtype=USER_LOGIN -F success=0
+
+# Setting Control Rules
+
+auditctl -D
+  # Remove all rules
+
+auditctl -W /bin/
+  # Remove a file-system rule that monitors the /bin/ directory. The path (/bin/) must match the rule exactly.
+
+auditctl -e 2
+  # Set the currently loaded rules to be immutable. This rule means that the rules cannot be changed again until the system is rebooted.
+
+auditctl -w /etc/ -p wa -k config-change
+  # Use the auditctl command to add a temporary Audit rule that logs every write or attribute change to any file in the /etc/ directory. Add the config-change key to all log messages.
+
+ausearch --start today -k config-change
+  # check your Audit logs for all of today's entries with the config-change key.
+
+auditctl -a exit,always -F dir=/bin/ -F "auid>=1000" -F "auid!=-1" -F "euid=0" -p x -k privileged-execution
+  # Use the auditctl command to create the temporary Audit rule. Log these Audit messages with the privileged-execution key.
+
+/etc/audit/rules.d/audit.rules
+-a exit,always -S unlink -S unlinkat -S rename -S renameat -S rmdir -F auid>=1000 -k delete
+augenrules --load
+touch /tmp/testfile; rm /tmp/testfile
+ausearch --start this-year -i -k delete -f /tmp/testfile
