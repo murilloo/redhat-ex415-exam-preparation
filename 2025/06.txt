@@ -23,11 +23,25 @@ service auditd restart
 
 /var/log/audit/audit.log
 ausearch -i -if ./raw_audit.log
+  # -i option to interpret the log records and translate numeric values into names. 
+  # -if option in the following example takes a saved raw log file as an argument, so that ausearch can analyze the raw log file rather than the current Audit log on the system.
+  
 ausearch -p 1440 --raw
+  # -p option looks for Audit log entries that are recorded by a process with a PID of 1440.
+  # --raw option to print raw log entries without separators between events. 
+
 ausearch -a 233
+  # -a <EVENT-ID> option to show all records for a particular event based on the event ID.
+
 ausearch -m LOGIN
+  # -m <MESSAGE-TYPE> option to show all events that include a record with a specific message type. 
+
 ausearch -f /bin/ls
+  # -f <FILENAME> option to search for all events that are related to a specific file name.
+
 ausearch -i -a 28708
+  # The following ausearch command returns an interpreted version of event 28708
+
 autrace /bin/date
 ausearch --raw -p 26472 | aureport --file -i
 
