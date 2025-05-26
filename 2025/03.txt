@@ -1,1 +1,35 @@
 # Protecting Data with LUKS and NBDE
+
+#1
+parted -l
+lsblk
+parted /dev/vdb mklabel msdos mkpart primary xfs 1M 1G
+parted /dev/vdb print
+
+cryptsetup luksFormat /dev/vdb1
+cryptsetup open /dev/vdb1 encryptedvdb1
+ls /dev/mapper/encryptedvdb1
+
+mkfs.xfs /dev/mapper/encryptedvdb1
+mkdir /encrypted
+mount -t xfs /dev/mapper/encryptedvdb1 /encrypted
+
+mount | grep encryptedvdb1
+touch /encrypted/testfile
+
+umount /encrypted
+cryptsetup close encryptedvdb1
+
+# 2
+parted /dev/vdb mklabel msdos mkpart primary xfs 1M 1G
+cryptsetup luksFormat /dev/vdb1
+cryptsetup luksOpen /dev/vdb1 encryptedvdb1
+ls /dev/mapper/encryptedvdb1
+mkfs.xfs /dev/mapper/encryptedvdb1
+mkdir /encrypted
+mount -t xfs /dev/mapper/encryptedvdb1 /encrypted
+mount | grep /encrypted
+touch /encrypted/testfile
+umount /encrypted
+cryptsetup luksClose encryptedvdb1
+
