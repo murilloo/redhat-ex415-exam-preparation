@@ -1,0 +1,28 @@
+# Restricting USB Device Access
+
+dnf install usbguard
+dnf install usbutils udisks2
+systemctl enable --now usbguard.service
+usbguard list-devices
+usbguard allow-device 1
+usbguard block-device 2
+usbguard reject-device 2
+usbguard list-rules
+usbguard generate-policy > /etc/usbguard/rules.conf
+usbguard remove-rule 3
+usbguard generate-policy > /etc/usbguard/rules.conf
+systemctl enable --now usbguard
+usbguard list-rules
+
+# Persistency
+usbguard allow-device -p 2
+systemctl restart usbguard.service
+usbguard block-device 2
+usbguard block-device -p 2
+usbguard reject-device 2
+usbguard reject-device -p 2
+
+/etc/usbguard/usbguard-daemon.conf
+IPCAllowedGroups=wheel
+usbguard add-user -g usbguard --devices=modify,list,listen --policy=list --exceptions=listen
+
