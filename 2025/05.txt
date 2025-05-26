@@ -1,1 +1,32 @@
 # Controlling Authentication with PAM
+
+# 1
+authselect list
+authselect list-features minimal
+authselect show minimal
+cat /etc/pam.d/system-auth
+authselect select minimal with-pwhistory
+authselect current
+cat /etc/pam.d/system-auth
+
+
+# Configuring Password Quality Requirements
+
+/etc/security/pwquality.conf
+minlen = 12
+dcredit = -1
+ocredit = -1
+
+# Limiting Access after Failed Logins
+
+authselect select minimal with-faillock --force
+faillock
+faillock --user user1
+faillock --user user1 --reset
+
+vi /etc/security/faillock.conf
+
+deny = 5
+unlock_time = 900
+
+authselect select minimal with-faillock
