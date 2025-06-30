@@ -1,0 +1,6 @@
+# Detecting File-system Changes with AIDE
+
+dnf install aide
+/etc/aide.conf
+
+
