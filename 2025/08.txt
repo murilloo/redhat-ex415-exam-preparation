@@ -1,0 +1,82 @@
+# Enabling SELinux from the Disabled State
+
+getenforce
+setenforce 0
+getenforce
+Permissive
+setenforce 1
+getenforce
+Enforcing
+
+/etc/selinux/config
+  SELINUX=enforcing
+
+# Disabling SELinux
+
+dnf install grubby
+grubby --update-kernel ALL --args selinux=0
+getenforce
+Disabled
+
+# Enabling SELinux from Disabled Mode
+/etc/selinux/config
+SELINUX=permissive
+
+grubby --update-kernel ALL --remove-args selinux
+ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -ts recent
+journalctl -t setroubleshoot
+fixfiles -F onboot
+/etc/selinux/config
+SELINUX=enforcing
+
+# Resolving SELinux Issues
+grep denied /var/log/audit/audit.log
+ausearch -m AVC -ts boot
+
+# Changing SELinux Contexts for Files and Directories
+ls -Zd /etc/httpd/conf.d/
+ls -Z /etc/httpd/conf.d/test_conf
+ausearch -m AVC,USER_AVC
+semanage fcontext -a -t httpd_sys_content_t '/web(/.*)?'
+restorecon -Rv /web
+
+# Defining SELinux Users
+semanage user -l
+id -Z
+semanage login -a -s sysadm_u  operator1 # add
+semanage login -d -s sysadm_u  operator1 # remove
+semanage login -m -s user_u -r s0 __default__ # modify
+
+# Confining User Accounts
+semanage login -m -s user_u -r s0 __default__ # associate your Linux users to the user_u 
+semanage login -a -s sysadm_u  operator1 # Map the system administrators to the sysadm_u SELinux user.
+semanage login -a -s staff_u  developer1 # Map the Linux users who need sudo command access to the staff_u
+
+# Confining Different User Accounts
+semanage login -m -s user_u -r s0 __default__ # confines all your Linux users to an SELinux user with minimal privileges by default
+setsebool -P user_exec_content off # prevent users with the user_u SELinux user mapping from executing programs in their home directories and the /tmp/ directory
+
+# Confining System Administrators
+semanage login -a -s sysadm_u  operator1
+useradd -G wheel -Z sysadm_u operator2
+setsebool -P ssh_sysadm_login on
+userdel operator1
+semanage login -d -s sysadm_u  operator1
+
+# Auditing the SELinux Policy
+seinfo
+seinfo --type
+seinfo --attribute
+sesearch -A -s httpd_t -t httpd_config_t -c file
+sesearch -A -s domain -t lib_t -c dir
+sesearch --dontaudit
+semodule -DB
+
+# Creating Custom Policy Modules
+grep denied /var/log/audit/audit.log
+audit2allow -a
+audit2allow -a -M mymodule
+
+# Domain Transitions
+pstree -Z 27393
+pstree -Z  | grep -e ^systemd -e httpd
