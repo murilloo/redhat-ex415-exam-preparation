@@ -1,6 +1,35 @@
 # Detecting File-system Changes with AIDE
 
 dnf install aide
-/etc/aide.conf
+cat /etc/aide.conf
 
+  /etc           CONTENT_EX
+  /testdir       CONTENT_EX
 
+mkdir /testdir
+aide --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+aide --check
+touch /testdir/testfile
+aide --check
+chmod 644 /etc/shadow
+aide --check
+chmod 000 /etc/shadow
+aide --check
+cat /etc/cron.d/aide
+
+# Investigating File-system Changes with AIDE
+
+/etc/aide.conf 
+
+/etc/passwd CONTENT_EX
+/etc/shadow CONTENT_EX
+
+aide --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+
+aide --check
+echo "-w /etc/shadow -p rwxa -k group_watch" >> /etc/audit/rules.d/audit.rules
+augenrules --load
+auditctl -l
+ausearch -i -f /etc/shadow -k group_watch
