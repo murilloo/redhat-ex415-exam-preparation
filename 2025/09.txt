@@ -1,0 +1,23 @@
+# Installing OpenSCAP
+
+dnf install openscap-scanner
+dnf install scap-security-guide
+dnf install scap-workbench
+man scap-security-guide
+oscap ds sds-split /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml /tmp/output
+oscap xccdf generate guide --profile xccdf_org.ssgproject.content_profile_stig /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml > guide.html
+
+# Scanning and Analyzing Compliance
+
+ls /usr/share/xml/scap/ssg/content/
+ssg-rhel9-ds.xml
+oscap info /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_stig --results /root/results.xml /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+oscap xccdf generate report results.xml > results.html
+
+# Remediating OpenSCAP Issues with Ansible
+
+oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_pci-dss --results /root/results.xml /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+oscap xccdf generate fix --profile xccdf_org.ssgproject.content_profile_pci-dss --fix-type ansible --result-id "" /root/results.xml > remediation-playbook.yml
+ansible-playbook -i ./myinventory pci-dss.yml
+ansible-playbook --tags=high_severity pci-dss.yml
